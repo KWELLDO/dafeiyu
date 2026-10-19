@@ -1,0 +1,24 @@
+# 大肥鱼配置(可选)。删掉这行以下全部内容也能跑,默认值见 lib/core.mjs。
+# 改完重启守护进程生效: dafeiyu --stop-all
+
+# 逐字上屏延时(ms)。1 = 最快;个别应用丢字时调到 5~30
+DAFEIYU_TYPE_DELAY=1
+
+# 停顿多久算一句话结束(ms)。越小越灵敏,也越容易切断
+DAFEIYU_AUTO_STOP_MS=800
+
+# 唤醒词 / 命令唤醒词(逗号分隔,识别结果里出现即触发)
+DAFEIYU_WAKE_WORDS=我跟你说,你听我跟你说
+DAFEIYU_CMD_WAKE_WORDS=大肥鱼,大飞鱼,大肥魚,大飞魚
+
+# 说这些词结尾会自动回车(容忍一字误差)
+DAFEIYU_SEND_WORDS=回车,回车键,换行,发送,半送,发出去
+
+# 这些应用改用剪贴板粘贴(Qt 客户端对虚拟键盘 Unicode 有缺陷)
+DAFEIYU_PASTE_APPS=wechat
+
+# 命令模式的小模型兜底: off | ollama:<model> | deepseek
+DAFEIYU_NLU=ollama:actbro/minicpm5-2b-jev:latest
+
+# 鼠标绝对坐标换算系数(点击位置不准时调这个)
+DAFEIYU_CLICK_SCALE=2

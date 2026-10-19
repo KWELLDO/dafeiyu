@@ -1,0 +1,14 @@
+{
+  "name": "dafeiyu",
+  "version": "0.1.0",
+  "description": "大肥鱼 · 本地离线语音输入与桌面控制 (Wayland / niri)",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "bin": { "dafeiyu": "bin/dafeiyu" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "exec": "node lib/cli-exec.mjs"
+  },
+  "files": ["bin", "lib", "stt", "systemd", "contrib", "README.md", "LICENSE", "NOTICE.md"]
+}

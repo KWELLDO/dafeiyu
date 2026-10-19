@@ -1,0 +1,11 @@
+// 大肥鱼 · niri 键位片段,粘贴进 ~/.config/niri/config.kdl
+// 校验: niri validate
+
+binds {
+    // 手动听写:按一下开始,再按一下结束(静音或说「结束」也会自动停)
+    Mod+Alt+V { spawn "sh" "-c" "dafeiyu"; }
+    // 唤醒听写:常驻监听,说「我跟你说」开始录音
+    Mod+Alt+Shift+V { spawn "sh" "-c" "dafeiyu --wake"; }
+    // 语音命令:常驻监听,说「大肥鱼 + 指令」执行
+    Mod+Alt+Shift+C { spawn "sh" "-c" "dafeiyu --cmd"; }
+}

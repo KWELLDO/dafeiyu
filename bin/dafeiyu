@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# 大肥鱼 · 命令行入口
+#   dafeiyu              切换手动听写(Alt+V)
+#   dafeiyu --wake       切换唤醒听写(Alt+Shift+V,说「我跟你说」)
+#   dafeiyu --cmd        切换命令模式(Alt+Shift+C,说「大肥鱼」)
+#   dafeiyu --status     查看各守护状态
+#   dafeiyu -p FILE      识别一个 16k/mono/s16le 原始 PCM 文件并打印
+#   dafeiyu --exec TEXT [--dry]   直接执行一条命令文本(调试)
+set -uo pipefail
+
+DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+RT="${XDG_RUNTIME_DIR:-/tmp}/dafeiyu"
+mkdir -p "$RT"; chmod 700 "$RT"
+LOG="$RT/daemon.log"
+
+notify() { notify-send -a dafeiyu -t "${2:-1500}" "$1" 2>/dev/null || true; }
+die() { echo "$1" >&2; notify "$1" 2500; exit 1; }
+
+alive() { [[ -s $1 ]] && kill -0 "$(cat "$1" 2>/dev/null)" 2>/dev/null; }
+
+start_daemon() { # name file args...
+  local name=$1 file=$2; shift 2
+  ( systemctl --user start dafeiyu-stt.service >/dev/null 2>&1 || true ) &
+  nohup node "$DIR/lib/$file" "$@" >>"$LOG" 2>&1 &
+  echo $! > "$RT/$name.pid"
+  sleep 0.4
+  alive "$RT/$name.pid" || { rm -f "$RT/$name.pid"; die "❌ $name 启动失败(见 $LOG)"; }
+}
+
+stop_daemon() {
+  local f="$RT/$1.pid"
+  alive "$f" || { rm -f "$f"; return 0; }
+  local pid; pid=$(cat "$f")
+  kill -TERM "$pid" 2>/dev/null
+  for _ in $(seq 1 120); do kill -0 "$pid" 2>/dev/null || break; sleep 0.05; done
+  kill -9 "$pid" 2>/dev/null || true
+  rm -f "$f"
+}
+
+case ${1:-} in
+  --status)
+    for n in rec wake cmd; do printf '%-5s %s\n' "$n" "$(alive "$RT/$n.pid" && echo running || echo stopped)"; done
+    systemctl --user is-active dafeiyu-stt.service | xargs echo "stt: "
+    exit 0 ;;
+  -p)
+    [[ -n ${2:-} ]] || { echo "用法: dafeiyu -p FILE" >&2; exit 2; }
+    exec node "$DIR/lib/oneshot.mjs" "$2" ;;
+  --exec)
+    shift; exec node "$DIR/lib/cli-exec.mjs" "$@" ;;
+  --wake)
+    if alive "$RT/wake.pid"; then stop_daemon wake; notify "👂 唤醒听写已关闭"; exit 0; fi
+    stop_daemon cmd
+    start_daemon wake dictate.mjs --wake
+    notify "👂 唤醒听写:说「我跟你说」开始录音" 2500
+    exit 0 ;;
+  --cmd)
+    if alive "$RT/cmd.pid"; then stop_daemon cmd; notify "🎛️ 命令模式已关闭"; exit 0; fi
+    stop_daemon wake
+    start_daemon cmd command.mjs
+    notify "🎛️ 命令模式:说「大肥鱼」+ 指令" 2500
+    exit 0 ;;
+  --stop-all)
+    stop_daemon rec; stop_daemon wake; stop_daemon cmd
+    notify "大肥鱼:已全部停止"; exit 0 ;;
+esac
+
+# 默认:切换手动听写
+if alive "$RT/rec.pid"; then
+  pid=$(cat "$RT/rec.pid")
+  kill -INT "$pid" 2>/dev/null
+  for _ in $(seq 1 3600); do kill -0 "$pid" 2>/dev/null || break; sleep 0.05; done
+  kill -9 "$pid" 2>/dev/null || true
+  rm -f "$RT/rec.pid"
+  exit 0
+fi
+start_daemon rec dictate.mjs
+notify "🎤 录音中 · 再按 Alt+V 结束(静音 3s 或说「结束」也会停)" 1600

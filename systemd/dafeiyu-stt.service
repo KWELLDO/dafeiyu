@@ -1,0 +1,16 @@
+[Unit]
+Description=大肥鱼 · 本地语音识别引擎 (SenseVoice)
+Documentation=https://github.com/KWELLDO/dafeiyu
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/dafeiyu/stt/serve.sh
+Restart=on-failure
+RestartSec=2
+# 连续 30 分钟没请求就退出,下次按键由客户端重新拉起,平时不占内存
+RuntimeMaxSec=1800
+Nice=5
+Environment=DAFEIYU_STT_BACKEND=auto
+
+[Install]
+WantedBy=default.target
