@@ -7,7 +7,7 @@
 | 快捷键 | 模式 | 怎么用 |
 |---|---|---|
 | `Alt+V` | 手动听写 | 按一下开始说,再按一下结束(停顿 0.8s 或说「结束」也会自动停) |
-| `Alt+Shift+D` | 唤醒听写 | 常驻待命,说「我跟你说」才开始录音,不用碰键盘 |
+| `Alt+Shift+D` | 唤醒听写 | 常驻待命,说「我跟你说」或「然后」才开始录音,不用碰键盘 |
 | `Alt+Shift+C` | 语音命令 | 常驻待命,说「大肥鱼 + 指令」直接操作桌面 |
 
 识别引擎是 [SenseVoice](https://github.com/FunAudioLLM/SenseVoice)(中文/英文/粤语/日语/韩语),通过
@@ -70,12 +70,16 @@ dafeiyu                                   # 按下说话
 ```ini
 DAFEIYU_TYPE_DELAY=1        # 逐字上屏延时(ms),1 最快;个别应用丢字就调到 5~30
 DAFEIYU_AUTO_STOP_MS=800    # 停顿多久算一句结束
-DAFEIYU_WAKE_WORDS=我跟你说,你听我跟你说
+DAFEIYU_WAKE_WORDS=我跟你说,你听我跟你说,然后
 DAFEIYU_CMD_WAKE_WORDS=大肥鱼,大飞鱼
 DAFEIYU_SEND_WORDS=回车,回车键,换行,发送        # 结尾说这些词自动回车
 DAFEIYU_PASTE_APPS=wechat   # 这些应用改用剪贴板粘贴
 DAFEIYU_NLU=ollama:actbro/minicpm5-2b-jev:latest
 ```
+
+唤醒词可以写多个,用逗号分隔,识别结果里出现任意一个就触发,后面接的内容会一起保留
+(说「然后明天下午三点见」= 直接开始听写「明天下午三点见」)。「然后」很常见,待命时正常说话
+也可能误触发;嫌太灵敏就从列表里去掉,或换成「然后呢」这种更少见的说法。
 
 所有键都能用同名环境变量覆盖,方便临时试:
 `DAFEIYU_AUTO_STOP_MS=1500 dafeiyu`。
