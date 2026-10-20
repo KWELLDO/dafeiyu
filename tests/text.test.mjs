@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { extractSend, cnToNum } from '../lib/core.mjs'
+import { extractSend, cnToNum, mergeBreaks } from '../lib/core.mjs'
 
 test('extractSend: 结尾触发词被去掉', () => {
   assert.deepEqual(extractSend('明天见发送'), { text: '明天见', send: true })
@@ -28,4 +28,11 @@ test('cnToNum: 中文数字', () => {
   assert.equal(cnToNum('二十'), 20)
   assert.equal(cnToNum('一百二十三'), 123)
   assert.equal(cnToNum('7'), 7)
+})
+
+test('mergeBreaks: 句中句号并成逗号', () => {
+  assert.equal(mergeBreaks('我先说一句。然后接着说我'), '我先说一句，然后接着说我')
+  assert.equal(mergeBreaks('第一句。第二句。'), '第一句，第二句。')
+  assert.equal(mergeBreaks('说完这句。'), '说完这句。')
+  assert.equal(mergeBreaks('版本 3.5 没问题。继续'), '版本 3.5 没问题，继续')
 })

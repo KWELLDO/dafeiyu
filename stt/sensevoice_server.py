@@ -100,18 +100,17 @@ def main():
     vad_conf.sample_rate = 16000
     vad = sherpa_onnx.VoiceActivityDetector(vad_conf, buffer_size_in_seconds=30)
 
-    def drain():
-        texts = []
-        stream = None
+    def drain(parts):
+        """把当前 VAD 段全部解码,按段收集(去掉段尾句号,后面统一拼)"""
         while not vad.empty():
             seg = vad.front
             stream = recognizer.create_stream()
             stream.accept_waveform(16000, seg.samples)
             recognizer.decode_stream(stream)
-            if stream.result.text.strip():
-                texts.append(stream.result.text.strip())
+            text = stream.result.text.strip().rstrip('。．.!！?？').strip()
+            if text:
+                parts.append(text)
             vad.pop()
-        return ' '.join(texts).strip()
 
     def transcribe(wav: bytes) -> dict:
         seconds = validate_wav(wav)
@@ -121,27 +120,17 @@ def main():
                 vad.reset()
             except Exception:
                 pass
-            texts = []
+            parts = []
             for i in range(0, len(pcm), 512):
                 vad.accept_waveform(pcm[i:i + 512])
-                while not vad.empty():
-                    seg = vad.front
-                    stream = recognizer.create_stream()
-                    stream.accept_waveform(16000, seg.samples)
-                    recognizer.decode_stream(stream)
-                    if stream.result.text.strip():
-                        texts.append(stream.result.text.strip())
-                    vad.pop()
+                drain(parts)
             vad.flush()
-            while not vad.empty():
-                seg = vad.front
-                stream = recognizer.create_stream()
-                stream.accept_waveform(16000, seg.samples)
-                recognizer.decode_stream(stream)
-                if stream.result.text.strip():
-                    texts.append(stream.result.text.strip())
-                vad.pop()
-        return {'text': ' '.join(texts).strip(), 'audioSeconds': round(seconds, 3)}
+            drain(parts)
+        # 一次请求 = 一次听写;中间的停顿用逗号连接,不切成句号
+        text = '，'.join(parts)
+        if text and text[-1] not in '。．.!！?？':
+            text += '。'
+        return {'text': text, 'audioSeconds': round(seconds, 3)}
 
     token = os.environ.get('DAFEIYU_SPEECH_TOKEN') or secrets.token_hex(32)
 
