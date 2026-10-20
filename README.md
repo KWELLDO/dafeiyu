@@ -7,7 +7,7 @@
 | 快捷键 | 模式 | 怎么用 |
 |---|---|---|
 | `Alt+V` | 手动听写 | 按一下开始说,再按一下结束(停顿 0.8s 或说「结束」也会自动停) |
-| `Alt+Shift+V` | 唤醒听写 | 常驻待命,说「我跟你说」才开始录音,不用碰键盘 |
+| `Alt+Shift+D` | 唤醒听写 | 常驻待命,说「我跟你说」才开始录音,不用碰键盘 |
 | `Alt+Shift+C` | 语音命令 | 常驻待命,说「大肥鱼 + 指令」直接操作桌面 |
 
 识别引擎是 [SenseVoice](https://github.com/FunAudioLLM/SenseVoice)(中文/英文/粤语/日语/韩语),通过
@@ -33,6 +33,9 @@ Silero VAD、把程序装到 `~/.local/share/dafeiyu`、链接到 `~/.local/bin/
 
 然后把 [`contrib/niri.kdl`](contrib/niri.kdl) 里的三个键位粘进 `~/.config/niri/config.kdl`,
 跑一次 `niri validate`,再 `niri msg action load-config-file`。
+
+> 键位可以随便改。唤醒键默认 **Alt+Shift+D**,是因为 `Alt+Shift+V` 经常被终端里的语音插件占用;
+> 全局绑定会先吃掉按键,终端收不到。想换回去就改 niri 配置里那一行。
 
 试一句:
 
